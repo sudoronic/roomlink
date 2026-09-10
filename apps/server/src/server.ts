@@ -13,6 +13,7 @@ import {
 } from "@roomlink/shared";
 import { config } from "./config.js";
 import { RoomStore } from "./roomStore.js";
+import { SupabasePersistence } from "./supabasePersistence.js";
 
 export function createApp(store = new RoomStore()) {
   const app = express();
@@ -118,9 +119,33 @@ export function createApp(store = new RoomStore()) {
 }
 
 export function startServer() {
-  const server = createApp();
-  server.httpServer.listen(config.port, () => {
+  const persistence = config.supabaseUrl && config.supabaseServiceRoleKey
+    ? new SupabasePersistence(config.supabaseUrl, config.supabaseServiceRoleKey)
+    : undefined;
+  if (!persistence) console.warn("Supabase persistence is disabled; set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
+  const store = new RoomStore(persistence, config.roomTtlMinutes);
+  const server = createApp(store);
+  const listen = () => server.httpServer.listen(config.port, () => {
     console.log(`RoomLink server listening on http://localhost:${config.port}`);
   });
+  if (persistence) {
+    persistence.load().then((data) => {
+      store.hydrate({
+        ...data,
+        messages: data.messages.map((message) => ({
+          id: message.id, roomId: message.room_id, senderId: message.sender_id,
+          senderName: message.sender_name, body: message.body, sentAt: message.sent_at
+        })),
+        invites: data.invites.map((invite) => ({
+          code: invite.code, roomId: invite.room_id, roomName: invite.room_name,
+          createdAt: invite.created_at, expiresAt: invite.expires_at
+        }))
+      });
+      listen();
+    }).catch((error: unknown) => {
+      console.error("Could not hydrate RoomLink from Supabase", error);
+      process.exitCode = 1;
+    });
+  } else listen();
   return server;
 }

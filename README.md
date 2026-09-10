@@ -38,7 +38,10 @@ npm test
 
 The production Docker image serves both the compiled web app and Socket.IO from
 one origin. Set `CLIENT_ORIGIN` to the public HTTPS URL and expose the platform's
-`PORT`; do not run the Vite development server in production.
+`PORT`; do not run the Vite development server in production. Supabase stores
+room metadata, members, retained messages, and invitation records; the server
+uses the service-role key only and the browser never receives it. File bytes
+still travel directly over WebRTC and are not uploaded to Supabase.
 
 ### Free public deployment
 
