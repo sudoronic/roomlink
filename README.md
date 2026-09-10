@@ -40,6 +40,15 @@ The production Docker image serves both the compiled web app and Socket.IO from
 one origin. Set `CLIENT_ORIGIN` to the public HTTPS URL and expose the platform's
 `PORT`; do not run the Vite development server in production.
 
+### Free public deployment
+
+The repository includes `render.yaml` for a single free Render web service.
+In Render, choose **New → Blueprint**, connect `sudoronic/roomlink`, and apply
+the blueprint. Render will build the Docker image, assign an HTTPS URL, and use
+the `/health` endpoint for checks. The free instance may sleep after inactivity,
+and in-memory rooms are cleared whenever it restarts. For a custom domain or
+always-on service, use a paid host.
+
 ## Environment
 
 `.env.example` contains safe local defaults only. Never commit real credentials.
