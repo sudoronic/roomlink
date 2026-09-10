@@ -1,0 +1,20 @@
+services:
+  server:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      CLIENT_ORIGIN: http://localhost:5173
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: npm run dev --workspace @roomlink/web -- --host 0.0.0.0
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3001
+    depends_on:
+      - server

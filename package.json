@@ -1,0 +1,26 @@
+{
+  "name": "roomlink",
+  "private": true,
+  "version": "0.1.0",
+  "description": "RoomLink: lightweight rooms for people, chat, and peer-to-peer files",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @roomlink/shared && npm run build --workspace @roomlink/server && npm run build --workspace @roomlink/web",
+    "dev": "npm run dev --workspace @roomlink/server & npm run dev --workspace @roomlink/web",
+    "test": "npm run test --workspace @roomlink/shared && npm run test --workspace @roomlink/server",
+    "typecheck": "npm run build --workspace @roomlink/shared && npm run typecheck --workspace @roomlink/server && npm run typecheck --workspace @roomlink/web",
+    "format:check": "npx prettier --check ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
