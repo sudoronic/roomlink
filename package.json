@@ -8,13 +8,16 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace @roomlink/shared && npm run build --workspace @roomlink/server && npm run build --workspace @roomlink/web",
-    "dev": "npm run dev --workspace @roomlink/server & npm run dev --workspace @roomlink/web",
-    "test": "npm run test --workspace @roomlink/shared && npm run test --workspace @roomlink/server",
+    "build": "npm run build --workspace @roomlink/shared && npm run build --workspace @roomlink/web",
+    "build:legacy": "npm run build --workspace @roomlink/server",
+    "dev": "npm run dev --workspace @roomlink/web",
+    "test": "npm run test --workspace @roomlink/shared && npm run test --workspace @roomlink/server && npm run test --workspace @roomlink/web",
     "typecheck": "npm run build --workspace @roomlink/shared && npm run typecheck --workspace @roomlink/server && npm run typecheck --workspace @roomlink/web",
-    "format:check": "npx prettier --check ."
+    "format:check": "npx prettier --check .",
+    "dev:legacy": "npm run dev --workspace @roomlink/server"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@types/node": "^22.10.2",
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
