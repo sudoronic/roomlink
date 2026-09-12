@@ -95,7 +95,6 @@ function Landing({
   return (
     <main className="landing">
       <section className="landing-copy">
-        <div className="brand-mark">RL</div>
         <p className="eyebrow">A calmer way to gather</p>
         <h1>
           Shared moments,
@@ -473,10 +472,7 @@ function Room({
   return (
     <div className="room-shell">
       <header className="topbar">
-        <div className="brand">
-          <span className="brand-mark small">RL</span>
-          <span>RoomLink</span>
-        </div>
+        <div className="brand">RoomLink</div>
         <div className="room-code">
           <span>{session.room.name}</span>
           <b>{session.room.code}</b>
