@@ -138,4 +138,11 @@ export async function createInvite(roomId: string) {
   return result.data as { code: string };
 }
 
+export async function closeRoom(roomId: string) {
+  const result = await supabase.rpc("roomlink_close_room", {
+    p_room_id: roomId,
+  });
+  if (result.error) throw result.error;
+}
+
 export { supabase };

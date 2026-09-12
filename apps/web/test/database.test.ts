@@ -19,6 +19,7 @@ test("RoomLink migrations enforce identity, expiry, membership and RPC-only muta
     for (const name of [
       "20260910120000_roomlink_persistence.sql",
       "20260910130000_roomlink_browser_auth.sql",
+      "20260912130000_roomlink_close_room.sql",
     ]) {
       await db.exec(
         readFileSync(
@@ -164,6 +165,52 @@ test("RoomLink migrations enforce identity, expiry, membership and RPC-only muta
     await assert.rejects(
       db.query(`select public.roomlink_join_room('${code}','late')`),
       /not be found/,
+    );
+    await as(owner);
+    const disposable = (
+      await db.query<{ value: { roomId: string } }>(
+        "select public.roomlink_create_room('disposable','owner') as value",
+      )
+    ).rows[0].value;
+    const disposableCode = (
+      await db.query<{ code: string }>(
+        `select code from public.roomlink_rooms where id = '${disposable.roomId}'`,
+      )
+    ).rows[0].code;
+    await as(guest);
+    await db.query(
+      `select public.roomlink_join_room('${disposableCode}','guest')`,
+    );
+    await assert.rejects(
+      db.query(`select public.roomlink_close_room('${disposable.roomId}')`),
+      /Only the room host/,
+    );
+    await as(owner);
+    await db.query(`select public.roomlink_close_room('${disposable.roomId}')`);
+    await db.exec("reset role");
+    assert.equal(
+      (
+        await db.query(
+          `select * from public.roomlink_rooms where id = '${disposable.roomId}'`,
+        )
+      ).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          `select * from public.roomlink_members where room_id = '${disposable.roomId}'`,
+        )
+      ).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          `select * from public.roomlink_invites where room_id = '${disposable.roomId}'`,
+        )
+      ).rows.length,
+      0,
     );
     await db.exec("reset role");
     assert.deepEqual((await db.query("select * from public.unrelated")).rows, [

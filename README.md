@@ -39,8 +39,22 @@ server, but it is not required for the Vercel deployment.
    service-role or secret key.
 
 Supabase handles anonymous identity, protected database access, chat events,
-presence, and WebRTC signaling metadata. It does not store file bytes,
-downloaded files, client-side chat caches, or portable guest identities.
+presence, and WebRTC signaling metadata. It does not use Supabase Storage:
+file bytes move directly between the two browsers over WebRTC and downloaded
+files remain on the recipient's device.
+
+## Data lifecycle and operating cost
+
+- A host closing a room calls a protected RPC that deletes the room. Foreign-key
+  cascades immediately delete that room's members, messages, and invite record.
+- Rooms also become inaccessible after 24 hours. Add a scheduled cleanup job
+  if you need expired rows physically removed without a host closing the room.
+- Chat history is capped at 100 messages per room. The app uses Realtime events
+  and does not poll Supabase, so an idle open room does not make repeated
+  database reads.
+- Presence, WebRTC signaling, and file transfer state are ephemeral. Supabase
+  Realtime carries only small signaling/presence messages; files are never
+  uploaded to Supabase or Vercel.
 
 ## Local setup
 
@@ -95,8 +109,10 @@ only for that legacy workflow.
 
 ## Limitations
 
-Chat history is retained to the newest 100 messages per room, and rooms expire
-after 24 hours. The client keeps only the same bounded history in memory.
+Chat history is retained to the newest 100 messages per room. A host can close
+the room at any time, which deletes all of its RoomLink data. Rooms otherwise
+expire after 24 hours; they become inaccessible, but physical deletion of
+unclosed expired rows needs a scheduled cleanup job if that is required.
 Anonymous sessions are intentionally lightweight and are lost when browser
 storage is cleared or on a different device. Anyone with the six-character room
 code can join while the room is live.

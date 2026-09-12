@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Copy,
+  DoorOpen,
   FileUp,
   Link2,
   LogOut,
@@ -14,6 +15,7 @@ import {
 import type { ChatMessage, RoomSnapshot } from "@roomlink/shared";
 import {
   createInvite,
+  closeRoom,
   createRoom,
   joinRoom,
   sendMessage,
@@ -368,13 +370,9 @@ function Room({
             fail(new Error("Room connection lost. Retrying…"));
         }
       });
-    const poll = window.setInterval(() => {
-      if (ready) void refresh();
-    }, 5000);
     return () => {
       stopped = true;
       ready = false;
-      window.clearInterval(poll);
       manager.stop();
       peers.current = null;
       void supabase.removeChannel(channel);
@@ -412,6 +410,24 @@ function Room({
         error instanceof Error ? error.message : "Could not create invite.",
       );
     }
+  }
+
+  async function leaveRoom() {
+    if (admin) {
+      const confirmed = window.confirm(
+        "Close this room for everyone? Its messages, members, and invite will be deleted permanently.",
+      );
+      if (!confirmed) return;
+      try {
+        await closeRoom(session.room.id);
+      } catch (error) {
+        onError(
+          error instanceof Error ? error.message : "Could not close the room.",
+        );
+        return;
+      }
+    }
+    onLeave();
   }
 
   async function submitMessage(event: React.FormEvent) {
@@ -467,10 +483,10 @@ function Room({
         </div>
         <button
           className="icon-button"
-          aria-label="Leave room"
-          onClick={onLeave}
+          aria-label={admin ? "Close room" : "Leave room"}
+          onClick={() => void leaveRoom()}
         >
-          <LogOut size={18} />
+          {admin ? <DoorOpen size={18} /> : <LogOut size={18} />}
         </button>
       </header>
       <div className="room-layout">
@@ -530,7 +546,7 @@ function Room({
             ))}
           </div>
           <div className="sidebar-footer">
-            <span className="secure-dot" /> Direct WebRTC file sharing
+            <span className="secure-dot" /> Files move directly between browsers
           </div>
         </aside>
         <main className="chat-panel">
